@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+  <meta charset="UTF-8">
+  <title>Document</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+    }
+
+    /* ===== 1 ===== */
+    #calc {
+      border: 2px solid #555;
+      padding: 10px;
+      width: 220px;
+      margin-bottom: 30px;
+    }
+    #calc input {
+      width: 200px;
+      height: 30px;
+      font-size: 18px;
+      margin-bottom: 5px;
+    }
+    #calc button {
+      width: 40px;
+      height: 40px;
+      margin: 3px;
+      font-size: 20px;
+      cursor: pointer;
+    }
+
+    /* ===== 2 ===== */
+    ul {
+      list-style: none;
+      padding: 0;
+      margin-bottom: 30px;
+    }
+    li {
+      padding: 10px;
+      border: 1px solid #888;
+      margin-bottom: 5px;
+      width: 150px;
+      cursor: pointer;
+    }
+    li.active {
+      background-color: lightblue;
+    }
+
+    /* ===== 3 ===== */
+    #ball {
+      width: 80px;
+      height: 80px;
+      background: yellow;
+      border-radius: 50%;
+      margin-bottom: 10px;
+    }
+
+    /* ===== 4 ===== */
+    #square {
+      width: 100px;
+      height: 100px;
+      background: red;
+      position: absolute;
+      top: 500px;
+      left: 50px;
+      cursor: grab;
+    }
+
+    /* ===== 5 ===== */
+    #bar {
+      width: 600px;
+      height: 50px;
+      background: lightgray;
+      position: relative;
+      overflow: hidden;
+      margin-top: 180px;
+    }
+    #fill {
+      position: absolute;
+      top: 0;
+      height: 100%;
+      width: 0;
+      background: red;
+      transition: width 2s linear;
+    }
+
+    /* ===== 6 ===== */
+    form {
+      margin-top: 40px;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- 1 -->
+  <div id="calc">
+    <input type="text" id="display" readonly>
+    <br>
+    <button onclick="setOp('+')">+</button>
+    <button onclick="setOp('-')">-</button>
+    <button onclick="setOp('*')">*</button>
+    <button onclick="setOp('/')">/</button>
+    <button onclick="calculate()">=</button>
+  </div>
+
+  <!-- 2 -->
+  <ul id="myList">
+    <li>Пункт 1</li>
+    <li>Пункт 2</li>
+    <li>Пункт 3</li>
+    <li>Пункт 4</li>
+    <li>Пункт 5</li>
+  </ul>
+
+  <!-- 3 -->
+  <div id="ball"></div>
+  <button id="play">PLAY</button>
+  <button id="stop">STOP</button>
+
+  <!-- 4 -->
+  <div id="square"></div>
+
+  <!-- 5 -->
+  <div id="bar">
+    <div id="fill"></div>
+  </div>
+
+  <!-- 6 -->
+  <form id="numForm">
+    <input type="text" id="numInput" placeholder="Введіть число">
+    <button type="submit">SUBMIT</button>
+  </form>
+
+  <script>
+    // ===== 1 =====
+    let first = null, op = null;
+    const display = document.getElementById('display');
+
+    document.addEventListener('keydown', e => {
+      if (/[0-9.]/.test(e.key)) display.value += e.key;
+    });
+
+    function setOp(operator) {
+      first = parseFloat(display.value);
+      op = operator;
+      display.value = '';
+    }
+
+    function calculate() {
+      const second = parseFloat(display.value);
+      if (isNaN(first) || isNaN(second)) return;
+      let res = 0;
+      switch (op) {
+        case '+': res = first + second; break;
+        case '-': res = first - second; break;
+        case '*': res = first * second; break;
+        case '/': res = first / second; break;
+      }
+      display.value = res;
+      first = null; op = null;
+    }
+
+    // ===== 2 =====
+    const ul = document.getElementById('myList');
+    ul.addEventListener('click', e => {
+      if (e.target.tagName === 'LI') {
+        document.querySelectorAll('#myList li').forEach(li => li.classList.remove('active'));
+        e.target.classList.add('active');
+      }
+    });
+
+    // ===== 3 =====
+    const ball = document.getElementById('ball');
+    const play = document.getElementById('play');
+    const stop = document.getElementById('stop');
+    let blink;
+
+    play.onclick = () => {
+      if (blink) return;
+      blink = setInterval(() => {
+        ball.style.visibility = ball.style.visibility === 'hidden' ? 'visible' : 'hidden';
+      }, 2500);
+    };
+
+    stop.onclick = () => {
+      clearInterval(blink);
+      blink = null;
+      ball.style.visibility = 'visible';
+    };
+
+    // ===== 4 =====
+    const square = document.getElementById('square');
+    let dragging = false, offsetX, offsetY;
+
+    square.addEventListener('mousedown', e => {
+      dragging = true;
+      offsetX = e.offsetX;
+      offsetY = e.offsetY;
+    });
+    document.addEventListener('mouseup', () => dragging = false);
+    document.addEventListener('mousemove', e => {
+      if (dragging) {
+        square.style.left = (e.pageX - offsetX) + 'px';
+        square.style.top = (e.pageY - offsetY) + 'px';
+      }
+    });
+
+    // ===== 5=====
+    const bar = document.getElementById('bar');
+    const fill = document.getElementById('fill');
+    let filled = false;
+
+    bar.addEventListener('click', e => {
+      if (filled) return;
+      const rect = bar.getBoundingClientRect();
+      const clickX = e.clientX - rect.left;
+      const percent = (clickX / rect.width) * 100;
+      fill.style.background = 'red';
+      fill.style.left = '0';
+      fill.style.width = percent + '%';
+      filled = true;
+    });
+
+    bar.addEventListener('contextmenu', e => {
+      e.preventDefault();
+      if (filled) return;
+      const rect = bar.getBoundingClientRect();
+      const clickX = rect.right - e.clientX;
+      const percent = (clickX / rect.width) * 100;
+      fill.style.background = 'blue';
+      fill.style.right = '0';
+      fill.style.left = 'auto';
+      fill.style.width = percent + '%';
+      filled = true;
+    });
+
+    // ===== 6 =====
+    const form = document.getElementById('numForm');
+    form.addEventListener('submit', e => {
+      const val = document.getElementById('numInput').value.trim();
+      if (isNaN(val) || val === '') {
+        e.preventDefault();
+        alert('Помилка: введіть число!');
+      }
+    });
+  </script>
+</body>
+</html>
